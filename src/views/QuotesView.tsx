@@ -87,7 +87,8 @@ export function QuotesView() {
         (p.barcode ?? '').toLowerCase().includes(search.toLowerCase()) ||
         p.brand.toLowerCase().includes(search.toLowerCase());
       const matchCat = category === 'Todos' || p.category === category;
-      const matchBrand = brandFilter === 'Todas' || p.brand === brandFilter;
+      const matchBrand =
+        brandFilter === 'Todas' || p.brand.toLowerCase() === brandFilter.toLowerCase();
       return matchSearch && matchCat && matchBrand;
     });
   }, [products, search, category, brandFilter]);

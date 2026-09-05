@@ -139,7 +139,8 @@ export function PosView() {
         p.brand.toLowerCase().includes(search.toLowerCase()) ||
         (p.serialNumbers ?? []).some((sn) => sn.toLowerCase().includes(search.toLowerCase()));
       const matchCat = category === 'Todos' || p.category === category;
-      const matchBrand = brandFilter === 'Todas' || p.brand === brandFilter;
+      const matchBrand =
+        brandFilter === 'Todas' || p.brand.toLowerCase() === brandFilter.toLowerCase();
       return matchSearch && matchCat && matchBrand;
     });
   }, [products, search, category, brandFilter]);

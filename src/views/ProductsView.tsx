@@ -59,15 +59,19 @@ export function ProductsView() {
   const {
     products,
     categories,
+    brands,
     addProduct,
     updateProduct,
     deleteProduct,
     addCategory,
     deleteCategory,
+    addBrand,
+    deleteBrand,
   } = useStore();
 
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<Category | 'Todos'>('Todos');
+  const [brandFilter, setBrandFilter] = useState<string | 'Todos'>('Todos');
   const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
   const [modalOpen, setModalOpen] = useState(false);
   const [modalTab, setModalTab] = useState<'general' | 'serials'>('general');
@@ -82,6 +86,10 @@ export function ProductsView() {
   const [categoryModalOpen, setCategoryModalOpen] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
 
+  // Brand Manager Modal State
+  const [brandModalOpen, setBrandModalOpen] = useState(false);
+  const [newBrandName, setNewBrandName] = useState('');
+
   const filtered = useMemo(() => {
     return products.filter((p) => {
       const matchSearch =
@@ -91,12 +99,17 @@ export function ProductsView() {
         p.brand.toLowerCase().includes(search.toLowerCase()) ||
         (p.serialNumbers ?? []).some((sn) => sn.toLowerCase().includes(search.toLowerCase()));
       const matchCat = categoryFilter === 'Todos' || p.category === categoryFilter;
-      return matchSearch && matchCat;
+      const matchBrand = brandFilter === 'Todos' || p.brand.toLowerCase() === brandFilter.toLowerCase();
+      return matchSearch && matchCat && matchBrand;
     });
-  }, [products, search, categoryFilter]);
+  }, [products, search, categoryFilter, brandFilter]);
 
   const openCreate = () => {
-    setForm({ ...emptyForm, category: categories[0] || 'Componentes' });
+    setForm({
+      ...emptyForm,
+      category: categories[0] || 'Componentes',
+      brand: brands[0] || 'ASUS',
+    });
     setNewSnInput('');
     setBulkSnInput('');
     setShowBulkInput(false);
@@ -116,7 +129,7 @@ export function ProductsView() {
       price: p.price,
       stock: p.stock,
       minStock: p.minStock,
-      brand: p.brand,
+      brand: p.brand || brands[0] || 'ASUS',
       image: p.image ?? '',
       description: p.description ?? '',
     });
@@ -171,9 +184,26 @@ export function ProductsView() {
 
   const handleAddCategorySubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newCategoryName.trim()) return;
-    addCategory(newCategoryName.trim());
+    const name = newCategoryName.trim();
+    if (!name) return;
+    if (categories.some((c) => c.toLowerCase() === name.toLowerCase())) {
+      alert(`La categoría "${name}" ya existe en el sistema`);
+      return;
+    }
+    addCategory(name);
     setNewCategoryName('');
+  };
+
+  const handleAddBrandSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const name = newBrandName.trim();
+    if (!name) return;
+    if (brands.some((b) => b.toLowerCase() === name.toLowerCase())) {
+      alert(`La marca "${name}" ya existe en el sistema (evita duplicados de mayúsculas/minúsculas)`);
+      return;
+    }
+    addBrand(name);
+    setNewBrandName('');
   };
 
   const save = () => {
@@ -262,8 +292,8 @@ export function ProductsView() {
 
       {/* Toolbar */}
       <div className="flex flex-col sm:flex-row gap-2.5 items-start sm:items-center justify-between">
-        <div className="flex gap-2 flex-1 max-w-xl w-full">
-          <div className="relative flex-1">
+        <div className="flex gap-2 flex-1 max-w-2xl w-full flex-wrap sm:flex-nowrap">
+          <div className="relative flex-1 min-w-[200px]">
             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-400" />
             <input
               type="text"
@@ -285,6 +315,18 @@ export function ProductsView() {
               </option>
             ))}
           </select>
+          <select
+            value={brandFilter}
+            onChange={(e) => setBrandFilter(e.target.value)}
+            className="input w-auto text-xs"
+          >
+            <option value="Todos">Todas las marcas</option>
+            {brands.map((b) => (
+              <option key={b} value={b}>
+                {b}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end flex-wrap">
@@ -295,6 +337,15 @@ export function ProductsView() {
           >
             <FolderPlus size={14} className="text-brand-600" />
             Categorías
+          </button>
+
+          <button
+            onClick={() => setBrandModalOpen(true)}
+            className="btn-secondary text-xs py-1.5 px-3 flex items-center gap-1 text-ink-700 hover:bg-ink-50"
+            title="Administrar marcas del sistema"
+          >
+            <Tag size={14} className="text-purple-600" />
+            Marcas
           </button>
 
           <button
@@ -586,14 +637,28 @@ export function ProductsView() {
               </div>
 
               <div>
-                <label className="label text-xs">Marca</label>
-                <input
-                  type="text"
+                <div className="flex items-center justify-between mb-1">
+                  <label className="label text-xs mb-0">Marca *</label>
+                  <button
+                    type="button"
+                    onClick={() => setBrandModalOpen(true)}
+                    className="text-[11px] text-brand-600 hover:text-brand-800 font-semibold flex items-center gap-0.5"
+                    title="Crear o administrar marcas"
+                  >
+                    <Plus size={11} /> Nueva Marca
+                  </button>
+                </div>
+                <select
                   value={form.brand}
                   onChange={(e) => setForm({ ...form, brand: e.target.value })}
-                  className="input text-xs"
-                  placeholder="Ej. ASUS"
-                />
+                  className="input text-xs font-semibold"
+                >
+                  {brands.map((b) => (
+                    <option key={b} value={b}>
+                      {b}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div>
@@ -924,6 +989,92 @@ export function ProductsView() {
             <button
               type="button"
               onClick={() => setCategoryModalOpen(false)}
+              className="btn-secondary text-xs"
+            >
+              Listo
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Brand Management Modal */}
+      <Modal
+        open={brandModalOpen}
+        onClose={() => setBrandModalOpen(false)}
+        title="Gestión de Marcas de Productos"
+        subtitle="Estandariza los nombres de marcas para evitar duplicados como Lenovo vs lenovo"
+        size="md"
+      >
+        <div className="space-y-4">
+          {/* Add Brand Form */}
+          <form onSubmit={handleAddBrandSubmit} className="space-y-1.5">
+            <label className="label text-xs">Nueva Marca</label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="Ej. ASUS, Lenovo, Dell, MSI, Logitech..."
+                value={newBrandName}
+                onChange={(e) => setNewBrandName(e.target.value)}
+                className="input text-xs"
+              />
+              <button
+                type="submit"
+                className="btn-primary text-xs px-3 font-bold shrink-0 bg-purple-600 hover:bg-purple-700"
+              >
+                <Plus size={14} /> Crear Marca
+              </button>
+            </div>
+            <p className="text-[11px] text-ink-500">
+              Las marcas creadas estarán disponibles en el selector del formulario y filtros del POS.
+            </p>
+          </form>
+
+          {/* Current Brands List */}
+          <div>
+            <label className="label text-xs font-bold text-ink-800">
+              Marcas Registradas ({brands.length}):
+            </label>
+            <div className="divide-y divide-ink-100 max-h-56 overflow-y-auto border border-ink-200 rounded-xl bg-ink-50/50 p-2 custom-scrollbar">
+              {brands.map((brandName) => {
+                const count = products.filter(
+                  (p) => p.brand.toLowerCase() === brandName.toLowerCase(),
+                ).length;
+                return (
+                  <div key={brandName} className="flex items-center justify-between py-2 px-2 text-xs">
+                    <div className="flex items-center gap-2">
+                      <Tag size={13} className="text-purple-600" />
+                      <span className="font-semibold text-ink-900">{brandName}</span>
+                      <span className="text-[10px] text-ink-400">({count} productos)</span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (count > 0) {
+                          if (
+                            !confirm(
+                              `Esta marca está asociada a ${count} producto(s). ¿Deseas eliminarla igualmente?`,
+                            )
+                          )
+                            return;
+                        }
+                        deleteBrand(brandName);
+                      }}
+                      className="p-1 text-ink-400 hover:text-red-500 rounded transition-colors"
+                      title="Eliminar marca"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="flex justify-end pt-2 border-t border-ink-100">
+            <button
+              type="button"
+              onClick={() => setBrandModalOpen(false)}
               className="btn-secondary text-xs"
             >
               Listo

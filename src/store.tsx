@@ -92,6 +92,7 @@ const initialBrands = [
   'Lenovo',
   'Dell',
   'HP',
+  'Apple',
   'Samsung',
   'Corsair',
   'Kingston',
@@ -105,6 +106,7 @@ const initialBrands = [
   'LG',
   'Razer',
   'TP-Link',
+  'NoRest PC',
 ];
 
 const initialPaymentMethods = [
@@ -240,21 +242,27 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const addCategory = useCallback((name: string) => {
     const trimmed = name.trim();
     if (!trimmed) return;
-    setCategories((prev) => (prev.includes(trimmed) ? prev : [...prev, trimmed]));
+    setCategories((prev) => {
+      if (prev.some((c) => c.toLowerCase() === trimmed.toLowerCase())) return prev;
+      return [...prev, trimmed];
+    });
   }, []);
 
   const deleteCategory = useCallback((name: string) => {
-    setCategories((prev) => prev.filter((c) => c !== name));
+    setCategories((prev) => prev.filter((c) => c.toLowerCase() !== name.trim().toLowerCase()));
   }, []);
 
   const addBrand = useCallback((name: string) => {
     const trimmed = name.trim();
     if (!trimmed) return;
-    setBrands((prev) => (prev.includes(trimmed) ? prev : [...prev, trimmed]));
+    setBrands((prev) => {
+      if (prev.some((b) => b.toLowerCase() === trimmed.toLowerCase())) return prev;
+      return [...prev, trimmed];
+    });
   }, []);
 
   const deleteBrand = useCallback((name: string) => {
-    setBrands((prev) => prev.filter((b) => b !== name));
+    setBrands((prev) => prev.filter((b) => b.toLowerCase() !== name.trim().toLowerCase()));
   }, []);
 
   const addPaymentMethod = useCallback((name: string) => {
