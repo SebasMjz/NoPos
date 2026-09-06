@@ -571,7 +571,7 @@ export function CustomersView() {
                                       : 'amber'
                                   }
                                 >
-                                  {s.status === 'Pendiente' ? '⏳ Saldo Pendiente de Pago' : s.status}
+                                  {s.status === 'Pendiente' ? ' Saldo Pendiente de Pago' : s.status}
                                 </Badge>
                                 <button
                                   onClick={() => setPrintSale(s)}

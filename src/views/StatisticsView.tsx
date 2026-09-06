@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import {
   TrendingUp,
-  DollarSign,
+  Banknote,
   Package,
   ShoppingBag,
   Percent,
@@ -138,7 +138,7 @@ export function StatisticsView() {
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         <div className="card p-4">
           <div className="flex items-center gap-2 mb-1">
-            <DollarSign size={16} className="text-emerald-500" />
+            <Banknote size={16} className="text-emerald-500" />
             <span className="text-xs text-ink-500 font-medium">Ingresos Totales</span>
           </div>
           <p className="text-xl font-bold text-ink-900">{formatCurrency(totalRevenue)}</p>
@@ -203,9 +203,9 @@ export function StatisticsView() {
         </div>
 
         {/* Bar Chart Container */}
-        <div className="relative pt-6">
+        <div className="relative pt-10 pb-2">
           {/* Y-axis grid references */}
-          <div className="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-20 border-b border-ink-300">
+          <div className="absolute inset-x-0 bottom-8 top-10 flex flex-col justify-between pointer-events-none opacity-20 border-b border-ink-300">
             <div className="border-b border-ink-400 w-full" />
             <div className="border-b border-ink-400 w-full" />
             <div className="border-b border-ink-400 w-full" />

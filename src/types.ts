@@ -71,6 +71,7 @@ export interface Sale {
   documentType: 'Factura' | 'Nota de venta';
   customerId: string | null;
   customerName: string;
+  customerPhone?: string;
   cashierId: string;
   cashierName: string;
   registerSessionId?: string;

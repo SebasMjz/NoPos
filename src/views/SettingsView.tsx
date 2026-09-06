@@ -69,7 +69,7 @@ export function SettingsView() {
   const handleExportBackup = () => {
     const backupData = {
       exportDate: new Date().toISOString(),
-      systemVersion: 'NoPos Enterprise v3.2.0',
+      systemVersion: 'NoPosTech Enterprise v3.2.0',
       systemSettings: settings,
       products,
       suppliers,
@@ -85,7 +85,7 @@ export function SettingsView() {
     downloadAnchor.setAttribute('href', dataStr);
     downloadAnchor.setAttribute(
       'download',
-      `NoPos_Backup_Enterprise_${new Date().toISOString().split('T')[0]}.json`,
+      `NoPosTech_Backup_Enterprise_${new Date().toISOString().split('T')[0]}.json`,
     );
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();

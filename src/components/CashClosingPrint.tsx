@@ -51,9 +51,10 @@ export function CashClosingPrint({ session, onClose }: CashClosingPrintProps) {
         className="printable-ticket bg-white text-ink-900 p-5 rounded-2xl border border-ink-200 font-mono text-xs max-w-sm mx-auto shadow-sm space-y-3"
       >
         {/* Header */}
-        <div className="text-center space-y-0.5 border-b border-dashed border-ink-300 pb-3">
+        <div className="text-center space-y-1 border-b border-dashed border-ink-300 pb-3">
+          <img src="/logo.png" alt="NoPosTech Logo" className="w-12 h-12 object-contain mx-auto mb-1" />
           <h2 className="text-sm font-black tracking-wider uppercase text-ink-950">
-            NOPOS ELECTRÓNICA & PC
+            NOPOSTECH ELECTRÓNICA & HARDWARE
           </h2>
           <p className="text-[10px] text-ink-600">ACTA OFICIAL DE ARQUEO Y CIERRE DE TURNO</p>
           <p className="text-[10px] font-bold text-ink-800">TURNO Nº: {session.id}</p>

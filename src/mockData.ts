@@ -977,16 +977,16 @@ export const mockCreditAccounts = [
 ];
 
 export const defaultSystemSettings = {
-  companyName: 'NoPos High-End Tech Store',
+  companyName: 'NoPosTech — High-End Hardware & Computing',
   nitRfc: '1028374029',
   city: 'La Paz - Bolivia',
   address: 'Av. 16 de Julio #1440, El Prado',
   phone: '+591 (2) 244-1020 / 701-99887',
-  email: 'contacto@nopos-store.com',
+  email: 'contacto@nopostech.bo',
   currencySymbol: 'Bs.',
   currencyName: 'Bolivianos',
   taxRate: 13,
-  receiptHeader: 'NO-REST HARDWARE & COMPUTING SYSTEMS\nEspecialistas en Sistemas personalizados',
+  receiptHeader: 'NOPOSTECH HARDWARE & COMPUTING SYSTEMS\nEspecialistas en Sistemas personalizados y Equipamiento',
   receiptFooter: '¡Gracias por su compra!\nGarantía directa con número de serie (SN).\nConserve este ticket para soporte o RMA.',
   paperWidth: '80mm' as const,
   scannerBeepEnabled: true,

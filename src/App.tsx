@@ -44,7 +44,7 @@ function App() {
 
   return (
     <StoreProvider>
-      <div className="flex min-h-screen bg-ink-50">
+      <div className="flex h-screen w-screen overflow-hidden bg-ink-50">
         <Sidebar
           current={view}
           onNavigate={setView}
@@ -53,13 +53,13 @@ function App() {
           mobileOpen={mobileOpen}
           onCloseMobile={() => setMobileOpen(false)}
         />
-        <div className="flex-1 flex flex-col min-w-0">
+        <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
           <Topbar
             title={meta.title}
             subtitle={meta.subtitle}
             onToggleMobileMenu={() => setMobileOpen((o) => !o)}
           />
-          <main className="flex-1 p-3.5 sm:p-5 lg:p-6 overflow-x-hidden">
+          <main className="flex-1 p-3.5 sm:p-5 lg:p-6 overflow-y-auto overflow-x-hidden custom-scrollbar">
             {view === 'dashboard' && <DashboardView onNavigate={setView} />}
             {view === 'pos' && <PosView />}
             {view === 'quotes' && <QuotesView />}

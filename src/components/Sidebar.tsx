@@ -72,20 +72,24 @@ export function Sidebar({
           fixed top-0 bottom-0 left-0 z-50 lg:static lg:z-auto
           ${collapsed ? 'lg:w-20' : 'lg:w-64'}
           w-72 max-w-[85vw]
-          bg-ink-950 text-ink-100 flex flex-col transition-all duration-300 h-screen
+          bg-ink-950 text-ink-100 flex flex-col transition-all duration-300 h-full shrink-0
           ${mobileOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full lg:translate-x-0'}
         `}
       >
         {/* Logo & Mobile Close */}
         <div className="flex items-center justify-between px-5 h-16 border-b border-ink-800/50 shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center shrink-0 shadow-lg shadow-brand-900/50">
-              <Cpu size={22} className="text-white" />
-            </div>
-            {(!collapsed || mobileOpen) && (
-              <div className="animate-fade-in">
-                <h1 className="text-lg font-bold text-white tracking-tight">NoPos</h1>
-                <p className="text-[11px] text-ink-400 leading-none">Electrónica & PC</p>
+            {collapsed && !mobileOpen ? (
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-600 flex items-center justify-center font-black text-white text-sm shadow-md">
+                NP
+              </div>
+            ) : (
+              <div className="animate-fade-in pl-1">
+                <h1 className="text-xl font-extrabold text-white tracking-tight flex items-center gap-1.5">
+                  <span className="bg-gradient-to-r from-white via-ink-100 to-ink-300 bg-clip-text text-transparent">NoPos</span>
+                  <span className="text-brand-400 font-black px-1.5 py-0.5 rounded-md bg-brand-950/80 border border-brand-500/40 text-sm">Tech</span>
+                </h1>
+                <p className="text-[10px] uppercase font-semibold tracking-wider text-brand-300/70 mt-0.5">Electrónica & Hardware</p>
               </div>
             )}
           </div>

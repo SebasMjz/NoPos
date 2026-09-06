@@ -342,7 +342,7 @@ export function SalesView() {
                           s.status === 'Completada' ? 'green' : s.status === 'Cancelada' ? 'red' : 'amber'
                         }
                       >
-                        {s.status === 'Pendiente' ? '⏳ Saldo Pendiente de Pago' : s.status === 'Completada' ? '✅ Liquidada' : '❌ Anulada'}
+                        {s.status === 'Pendiente' ? ' Saldo Pendiente de Pago' : s.status === 'Completada' ? ' Liquidada' : ' Anulada'}
                       </Badge>
                     </td>
                     <td className="table-cell py-2">
@@ -678,7 +678,7 @@ export function SalesView() {
                       : 'amber'
                   }
                 >
-                  {detailSale.status === 'Pendiente' ? '⏳ Pendiente de Pago' : detailSale.status}
+                  {detailSale.status === 'Pendiente' ? ' Pendiente de Pago' : detailSale.status}
                 </Badge>
               </div>
             </div>
@@ -692,7 +692,7 @@ export function SalesView() {
                     Estado de Reserva y Saldos
                   </span>
                   <span>
-                    {detailSale.status === 'Pendiente' ? '⏳ Saldo Pendiente de Cobro' : '✅ Venta Liquidada Totalmente'}
+                    {detailSale.status === 'Pendiente' ? ' Saldo Pendiente de Cobro' : ' Venta Liquidada Totalmente'}
                   </span>
                 </div>
                 <div className="grid grid-cols-3 gap-2 pt-1">
