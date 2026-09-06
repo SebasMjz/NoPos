@@ -23,6 +23,7 @@ import { formatCurrency, formatNumber } from '../components/format';
 import { Modal } from '../components/Modal';
 import { Badge } from '../components/Badge';
 import { exportToExcel } from '../utils/exportExcel';
+import { Pagination } from '../components/Pagination';
 import type { Product, Category } from '../types';
 
 interface ProductFormData {
@@ -73,6 +74,8 @@ export function ProductsView() {
   const [categoryFilter, setCategoryFilter] = useState<Category | 'Todos'>('Todos');
   const [brandFilter, setBrandFilter] = useState<string | 'Todos'>('Todos');
   const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalTab, setModalTab] = useState<'general' | 'serials'>('general');
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -103,6 +106,12 @@ export function ProductsView() {
       return matchSearch && matchCat && matchBrand;
     });
   }, [products, search, categoryFilter, brandFilter]);
+
+  const paginatedProducts = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filtered.slice(start, start + pageSize);
+  }, [filtered, currentPage, pageSize]);
+
 
   const openCreate = () => {
     setForm({
@@ -392,7 +401,7 @@ export function ProductsView() {
       {/* Main Content Area */}
       {viewMode === 'table' ? (
         <div className="card overflow-hidden">
-          <div className="max-h-[calc(100vh-17rem)] overflow-y-auto custom-scrollbar">
+          <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-ink-50 border-b border-ink-100 sticky top-0 z-10">
                 <tr>
@@ -406,7 +415,7 @@ export function ProductsView() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-ink-50">
-                {filtered.map((p) => (
+                {paginatedProducts.map((p) => (
                   <tr key={p.id} className="hover:bg-ink-50/50 transition-colors">
                     <td className="table-cell py-2">
                       <div className="flex items-center gap-2.5">
@@ -491,12 +500,22 @@ export function ProductsView() {
               </tbody>
             </table>
           </div>
+          <Pagination
+            currentPage={currentPage}
+            totalItems={filtered.length}
+            pageSize={pageSize}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={(newSize) => {
+              setPageSize(newSize);
+              setCurrentPage(1);
+            }}
+          />
         </div>
       ) : (
         /* Compact Card Grid */
-        <div className="max-h-[calc(100vh-17rem)] overflow-y-auto pr-1 custom-scrollbar">
+        <div className="space-y-4">
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 2xl:grid-cols-5 gap-3">
-            {filtered.map((p) => (
+            {paginatedProducts.map((p) => (
               <div
                 key={p.id}
                 className="card p-3 flex flex-col justify-between bg-white border border-ink-100 hover:shadow-md transition-all"
@@ -564,8 +583,22 @@ export function ProductsView() {
               </div>
             ))}
           </div>
+
+          <div className="card overflow-hidden">
+            <Pagination
+              currentPage={currentPage}
+              totalItems={filtered.length}
+              pageSize={pageSize}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={(newSize) => {
+                setPageSize(newSize);
+                setCurrentPage(1);
+              }}
+            />
+          </div>
         </div>
       )}
+
 
       {/* Create / Edit Modal with Reference Tabs */}
       <Modal

@@ -124,6 +124,8 @@ export type MovementSubtype =
   | 'uso_interno'
   | 'faltante_inventario'
   | 'donacion_salida'
+  // Transferencia
+  | 'transferencia_salida'
   // Ajustes
   | 'auditoria_conteo'
   | 'otro';
@@ -134,11 +136,16 @@ export interface Movement {
   subtype?: MovementSubtype;
   supplierId?: string;
   supplierName?: string;
+  branchId?: string;
+  branchName?: string;
+  targetBranchId?: string;
+  targetBranchName?: string;
   productId: string;
   productName: string;
   sku: string;
   barcode?: string;
   serialNumber?: string;
+  serialNumbers?: string[];
   quantity: number;
   unitCost?: number;
   reason: string;
@@ -183,6 +190,69 @@ export interface CashRegisterSession {
   salesList?: Sale[];
 }
 
+// Enterprise Branch & Warehouses
+export interface Branch {
+  id: string;
+  name: string;
+  code: string;
+  type: 'tienda' | 'deposito' | 'taller';
+  city: string;
+  address: string;
+  phone: string;
+  isMain: boolean;
+  active: boolean;
+}
+
+// Accounts Receivable & Payable (Créditos y Deudas)
+export interface CreditPayment {
+  id: string;
+  date: string;
+  amount: number;
+  method: string;
+  reference?: string;
+  cashierName: string;
+  notes?: string;
+}
+
+export interface CreditAccount {
+  id: string;
+  type: 'cobrar' | 'pagar'; // 'cobrar' = Cliente, 'pagar' = Proveedor
+  folio: string;
+  entityId: string; // customerId or supplierId
+  entityName: string;
+  entityPhone?: string;
+  totalAmount: number;
+  paidAmount: number;
+  remainingAmount: number;
+  dueDate: string;
+  status: 'vigente' | 'vencido' | 'pagado';
+  payments: CreditPayment[];
+  relatedDocumentFolio?: string;
+  notes?: string;
+  createdAt: string;
+}
+
+// Enterprise System Configuration
+export interface SystemSettings {
+  companyName: string;
+  nitRfc: string;
+  city: string;
+  address: string;
+  phone: string;
+  email: string;
+  currencySymbol: string;
+  currencyName: string;
+  taxRate: number; // e.g. 13% or 0%
+  receiptHeader: string;
+  receiptFooter: string;
+  paperWidth: '58mm' | '80mm';
+  scannerBeepEnabled: boolean;
+  scannerAutoEnter: boolean;
+  enforceSerialOnSale: boolean;
+  lowStockAlert: boolean;
+  darkSidebar: boolean;
+}
+
 export type ViewKey =
   | 'dashboard'
   | 'pos'
@@ -191,7 +261,10 @@ export type ViewKey =
   | 'products'
   | 'sales'
   | 'movements'
+  | 'credits'
+  | 'branches'
   | 'customers'
   | 'distributors'
   | 'users'
-  | 'statistics';
+  | 'statistics'
+  | 'settings';

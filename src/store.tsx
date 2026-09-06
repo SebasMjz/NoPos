@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
 import type {
   Product,
   Supplier,
@@ -9,6 +9,10 @@ import type {
   Movement,
   CashRegisterSession,
   CashMovement,
+  Branch,
+  CreditAccount,
+  CreditPayment,
+  SystemSettings,
 } from './types';
 import {
   mockProducts,
@@ -17,7 +21,11 @@ import {
   mockUsers,
   mockSales,
   mockMovements,
+  mockBranches,
+  mockCreditAccounts,
+  defaultSystemSettings,
 } from './mockData';
+import { posSound } from './utils/sound';
 
 interface StoreState {
   categories: string[];
@@ -30,6 +38,9 @@ interface StoreState {
   sales: Sale[];
   quotes: Quote[];
   movements: Movement[];
+  branches: Branch[];
+  creditAccounts: CreditAccount[];
+  systemSettings: SystemSettings;
   activeRegisterSession: CashRegisterSession | null;
   registerHistory: CashRegisterSession[];
   addCategory: (name: string) => void;
@@ -64,6 +75,24 @@ interface StoreState {
   addQuote: (quote: Omit<Quote, 'id' | 'folio' | 'createdAt'>) => Quote;
   deleteQuote: (id: string) => void;
   addMovement: (m: Omit<Movement, 'id' | 'createdAt'>) => void;
+  addBranch: (b: Omit<Branch, 'id'>) => void;
+  updateBranch: (id: string, b: Partial<Branch>) => void;
+  deleteBranch: (id: string) => void;
+  addCreditAccount: (c: Omit<CreditAccount, 'id' | 'folio' | 'createdAt' | 'paidAmount' | 'remainingAmount' | 'status' | 'payments'>) => void;
+  addCreditPayment: (accountId: string, payment: Omit<CreditPayment, 'id' | 'date'>) => void;
+  updateCreditAccount: (id: string, c: Partial<CreditAccount>) => void;
+  deleteCreditAccount: (id: string) => void;
+  updateSystemSettings: (s: Partial<SystemSettings>) => void;
+  restoreDatabase: (data: {
+    products?: Product[];
+    suppliers?: Supplier[];
+    customers?: Customer[];
+    movements?: Movement[];
+    sales?: Sale[];
+    branches?: Branch[];
+    creditAccounts?: CreditAccount[];
+    systemSettings?: SystemSettings;
+  }) => void;
 }
 
 const StoreContext = createContext<StoreState | null>(null);
@@ -76,6 +105,10 @@ const nextFolio = () => `V-${String(folioCounter++).padStart(5, '0')}`;
 
 let quoteFolioCounter = 501;
 const nextQuoteFolio = () => `COT-${String(quoteFolioCounter++).padStart(5, '0')}`;
+
+let creditFolioCounter = 103;
+const nextCreditFolio = (type: 'cobrar' | 'pagar') =>
+  `${type === 'cobrar' ? 'CC' : 'CP'}-${String(creditFolioCounter++).padStart(5, '0')}`;
 
 const initialCategories = [
   'Laptops',
@@ -129,6 +162,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [users, setUsers] = useState<User[]>(mockUsers);
   const [sales, setSales] = useState<Sale[]>(mockSales);
   const [movements, setMovements] = useState<Movement[]>(mockMovements);
+  const [branches, setBranches] = useState<Branch[]>(mockBranches);
+  const [creditAccounts, setCreditAccounts] = useState<CreditAccount[]>(mockCreditAccounts);
+  const [systemSettings, setSystemSettings] = useState<SystemSettings>(defaultSystemSettings);
+
+  // Sync sound settings with Audio synthesizer
+  useEffect(() => {
+    posSound.setEnabled(systemSettings.scannerBeepEnabled);
+  }, [systemSettings.scannerBeepEnabled]);
 
   // Quotes state
   const [quotes, setQuotes] = useState<Quote[]>([
@@ -178,28 +219,27 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     status: 'open',
     cashSales: 3500,
     cardSales: 5200,
-    transferSales: 4100,
+    transferSales: 4600,
     otherSales: 0,
-    cashIn: 200,
-    cashOut: 150,
-    expectedCash: 4050, // 500 + 3500 + 200 - 150
-    salesList: mockSales.slice(0, 3),
+    cashIn: 100,
+    cashOut: 50,
+    expectedCash: 4050,
     cashMovements: [
       {
         id: 'cm-1',
         type: 'ingreso',
-        amount: 200,
-        reason: 'Sencillo inicial para cambio',
+        amount: 100,
+        reason: 'Cambio inicial adicional',
         cashierName: 'Admin Principal',
-        createdAt: '2026-09-05T08:30:00',
+        createdAt: '2026-09-05T09:30:00',
       },
       {
         id: 'cm-2',
         type: 'egreso',
-        amount: 150,
-        reason: 'Pago de servicio delivery local',
+        amount: 50,
+        reason: 'Compra de insumos de limpieza',
         cashierName: 'Admin Principal',
-        createdAt: '2026-09-05T10:15:00',
+        createdAt: '2026-09-05T11:00:00',
       },
     ],
   });
@@ -207,68 +247,56 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [registerHistory, setRegisterHistory] = useState<CashRegisterSession[]>([
     {
       id: 'reg-000',
-      cashierId: 'u4',
-      cashierName: 'Diego Martínez',
+      cashierId: 'u2',
+      cashierName: 'Ricardo Hernández',
       openingAmount: 500,
       openedAt: '2026-09-04T08:00:00',
-      closedAt: '2026-09-04T19:30:00',
+      closedAt: '2026-09-04T20:00:00',
       status: 'closed',
-      cashSales: 4800,
-      cardSales: 6300,
-      transferSales: 3200,
+      cashSales: 12400,
+      cardSales: 8900,
+      transferSales: 6500,
       otherSales: 0,
       cashIn: 0,
-      cashOut: 200,
-      expectedCash: 5100,
-      actualCash: 5100,
+      cashOut: 150,
+      expectedCash: 12750,
+      actualCash: 12750,
       difference: 0,
-      confirmedCardSales: 6300,
-      confirmedTransferSales: 3200,
-      notes: 'Cierre de turno perfecto con verificación total de vouchers POS y transferencias QR.',
-      salesList: mockSales.slice(3, 7),
+      confirmedCardSales: 8900,
+      confirmedTransferSales: 6500,
+      confirmedOtherSales: 0,
+      notes: 'Cierre de turno sin novedades. Cuadre exacto.',
       cashMovements: [
         {
-          id: 'cm-0',
+          id: 'cm-0a',
           type: 'egreso',
-          amount: 200,
-          reason: 'Compra de suministros de limpieza',
-          cashierName: 'Diego Martínez',
-          createdAt: '2026-09-04T14:00:00',
+          amount: 150,
+          reason: 'Pago taxi mensajería urgente',
+          cashierName: 'Ricardo Hernández',
+          createdAt: '2026-09-04T14:10:00',
         },
       ],
     },
   ]);
 
   const addCategory = useCallback((name: string) => {
-    const trimmed = name.trim();
-    if (!trimmed) return;
-    setCategories((prev) => {
-      if (prev.some((c) => c.toLowerCase() === trimmed.toLowerCase())) return prev;
-      return [...prev, trimmed];
-    });
+    setCategories((prev) => (prev.includes(name) ? prev : [...prev, name]));
   }, []);
 
   const deleteCategory = useCallback((name: string) => {
-    setCategories((prev) => prev.filter((c) => c.toLowerCase() !== name.trim().toLowerCase()));
+    setCategories((prev) => prev.filter((c) => c !== name));
   }, []);
 
   const addBrand = useCallback((name: string) => {
-    const trimmed = name.trim();
-    if (!trimmed) return;
-    setBrands((prev) => {
-      if (prev.some((b) => b.toLowerCase() === trimmed.toLowerCase())) return prev;
-      return [...prev, trimmed];
-    });
+    setBrands((prev) => (prev.includes(name) ? prev : [...prev, name]));
   }, []);
 
   const deleteBrand = useCallback((name: string) => {
-    setBrands((prev) => prev.filter((b) => b.toLowerCase() !== name.trim().toLowerCase()));
+    setBrands((prev) => prev.filter((b) => b !== name));
   }, []);
 
   const addPaymentMethod = useCallback((name: string) => {
-    const trimmed = name.trim();
-    if (!trimmed) return;
-    setPaymentMethodsList((prev) => (prev.includes(trimmed) ? prev : [...prev, trimmed]));
+    setPaymentMethodsList((prev) => (prev.includes(name) ? prev : [...prev, name]));
   }, []);
 
   const deletePaymentMethod = useCallback((name: string) => {
@@ -277,10 +305,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const openCashRegister = useCallback((openingAmount: number, notes?: string) => {
     const newSession: CashRegisterSession = {
-      id: nextId('reg'),
+      id: nextId('reg-'),
       cashierId: 'u1',
       cashierName: 'Admin Principal',
-      openingAmount: Number(openingAmount) || 0,
+      openingAmount,
       openedAt: new Date().toISOString(),
       status: 'open',
       cashSales: 0,
@@ -289,7 +317,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       otherSales: 0,
       cashIn: 0,
       cashOut: 0,
-      expectedCash: Number(openingAmount) || 0,
+      expectedCash: openingAmount,
       notes,
       cashMovements: [],
       salesList: [],
@@ -308,14 +336,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (!activeRegisterSession) return;
       const closedSession: CashRegisterSession = {
         ...activeRegisterSession,
-        closedAt: new Date().toISOString(),
         status: 'closed',
-        actualCash: Number(data.actualCash),
-        difference: Number(data.actualCash) - activeRegisterSession.expectedCash,
+        closedAt: new Date().toISOString(),
+        actualCash: data.actualCash,
+        difference: data.actualCash - activeRegisterSession.expectedCash,
         confirmedCardSales: data.confirmedCardSales ?? activeRegisterSession.cardSales,
-        confirmedTransferSales: data.confirmedTransferSales ?? activeRegisterSession.transferSales,
+        confirmedTransferSales:
+          data.confirmedTransferSales ?? activeRegisterSession.transferSales,
         confirmedOtherSales: data.confirmedOtherSales ?? activeRegisterSession.otherSales,
-        notes: data.notes || activeRegisterSession.notes,
+        notes: data.notes ?? activeRegisterSession.notes,
       };
 
       setRegisterHistory((prev) => [closedSession, ...prev]);
@@ -327,22 +356,20 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const addCashMovement = useCallback(
     (type: 'ingreso' | 'egreso', amount: number, reason: string) => {
       if (!activeRegisterSession) return;
-      const parsedAmount = Math.abs(Number(amount)) || 0;
       const movement: CashMovement = {
-        id: nextId('cm'),
+        id: nextId('cm-'),
         type,
-        amount: parsedAmount,
-        reason: reason.trim() || (type === 'ingreso' ? 'Ingreso de efectivo' : 'Egreso de caja'),
-        cashierName: 'Admin Principal',
+        amount,
+        reason,
+        cashierName: activeRegisterSession.cashierName,
         createdAt: new Date().toISOString(),
       };
 
       setActiveRegisterSession((prev) => {
         if (!prev) return null;
-        const newCashIn = type === 'ingreso' ? prev.cashIn + parsedAmount : prev.cashIn;
-        const newCashOut = type === 'egreso' ? prev.cashOut + parsedAmount : prev.cashOut;
-        const newExpected =
-          prev.openingAmount + prev.cashSales + newCashIn - newCashOut;
+        const newCashIn = type === 'ingreso' ? prev.cashIn + amount : prev.cashIn;
+        const newCashOut = type === 'egreso' ? prev.cashOut + amount : prev.cashOut;
+        const newExpected = prev.openingAmount + prev.cashSales + newCashIn - newCashOut;
 
         return {
           ...prev,
@@ -357,19 +384,25 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   );
 
   const addProduct = useCallback((p: Omit<Product, 'id'>) => {
-    const finalStock = p.hasSerialNumber ? (p.serialNumbers?.length ?? 0) : p.stock;
-    setProducts((prev) => [{ ...p, stock: finalStock, id: nextId('p') }, ...prev]);
+    const newProduct: Product = {
+      ...p,
+      id: nextId('p'),
+      stock: p.hasSerialNumber ? (p.serialNumbers?.length ?? 0) : p.stock,
+    };
+    setProducts((prev) => [newProduct, ...prev]);
   }, []);
 
   const updateProduct = useCallback((id: string, patch: Partial<Product>) => {
     setProducts((prev) =>
       prev.map((p) => {
-        if (p.id !== id) return p;
-        const updated = { ...p, ...patch };
-        if (updated.hasSerialNumber) {
-          updated.stock = updated.serialNumbers?.length ?? 0;
+        if (p.id === id) {
+          const updated = { ...p, ...patch };
+          if (updated.hasSerialNumber && updated.serialNumbers) {
+            updated.stock = updated.serialNumbers.length;
+          }
+          return updated;
         }
-        return updated;
+        return p;
       }),
     );
   }, []);
@@ -379,8 +412,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const addSupplier = useCallback((s: Omit<Supplier, 'id' | 'createdAt'>) => {
-    const today = new Date().toISOString().slice(0, 10);
-    setSuppliers((prev) => [{ ...s, id: nextId('sup'), createdAt: today }, ...prev]);
+    const newSupplier: Supplier = {
+      ...s,
+      id: nextId('sup'),
+      createdAt: new Date().toISOString().split('T')[0],
+    };
+    setSuppliers((prev) => [newSupplier, ...prev]);
   }, []);
 
   const updateSupplier = useCallback((id: string, patch: Partial<Supplier>) => {
@@ -393,7 +430,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const addCustomer = useCallback(
     (c: Omit<Customer, 'id' | 'totalPurchases' | 'visits' | 'createdAt'>) => {
-      const today = new Date().toISOString().slice(0, 10);
+      const today = new Date().toISOString().split('T')[0];
       const newCustomer: Customer = {
         ...c,
         id: nextId('c'),
@@ -427,6 +464,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setUsers((prev) => prev.filter((u) => u.id !== id));
   }, []);
 
+  // Enhanced addMovement supporting multiple SNs in single transaction
   const addMovement = useCallback((m: Omit<Movement, 'id' | 'createdAt'>) => {
     const newMovement: Movement = {
       ...m,
@@ -440,11 +478,26 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       prev.map((p) => {
         if (p.id === m.productId) {
           let updatedSNs = p.serialNumbers ? [...p.serialNumbers] : [];
-          if (m.serialNumber) {
-            if (m.quantity > 0 && !updatedSNs.includes(m.serialNumber)) {
-              updatedSNs.push(m.serialNumber);
-            } else if (m.quantity < 0) {
-              updatedSNs = updatedSNs.filter((sn) => sn !== m.serialNumber);
+
+          // Collect all SNs from this movement
+          const incomingSNs: string[] = [];
+          if (m.serialNumbers && m.serialNumbers.length > 0) {
+            incomingSNs.push(...m.serialNumbers.filter(Boolean));
+          } else if (m.serialNumber) {
+            incomingSNs.push(m.serialNumber);
+          }
+
+          if (incomingSNs.length > 0) {
+            if (m.quantity > 0) {
+              // Entrada: add SNs
+              incomingSNs.forEach((sn) => {
+                if (!updatedSNs.includes(sn)) {
+                  updatedSNs.push(sn);
+                }
+              });
+            } else {
+              // Salida: remove SNs
+              updatedSNs = updatedSNs.filter((sn) => !incomingSNs.includes(sn));
             }
           }
 
@@ -632,6 +685,107 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  // Branch management
+  const addBranch = useCallback((b: Omit<Branch, 'id'>) => {
+    const newBranch: Branch = {
+      ...b,
+      id: nextId('br-'),
+    };
+    setBranches((prev) => [...prev, newBranch]);
+  }, []);
+
+  const updateBranch = useCallback((id: string, patch: Partial<Branch>) => {
+    setBranches((prev) => prev.map((b) => (b.id === id ? { ...b, ...patch } : b)));
+  }, []);
+
+  const deleteBranch = useCallback((id: string) => {
+    setBranches((prev) => prev.filter((b) => b.id !== id));
+  }, []);
+
+  // Credits / Accounts Receivable & Payable management
+  const addCreditAccount = useCallback(
+    (c: Omit<CreditAccount, 'id' | 'folio' | 'createdAt' | 'paidAmount' | 'remainingAmount' | 'status' | 'payments'>) => {
+      const newCredit: CreditAccount = {
+        ...c,
+        id: nextId('crd-'),
+        folio: nextCreditFolio(c.type),
+        paidAmount: 0,
+        remainingAmount: c.totalAmount,
+        status: 'vigente',
+        payments: [],
+        createdAt: new Date().toISOString(),
+      };
+      setCreditAccounts((prev) => [newCredit, ...prev]);
+    },
+    [],
+  );
+
+  const addCreditPayment = useCallback(
+    (accountId: string, payment: Omit<CreditPayment, 'id' | 'date'>) => {
+      const newPayment: CreditPayment = {
+        ...payment,
+        id: nextId('cp-'),
+        date: new Date().toISOString(),
+      };
+
+      setCreditAccounts((prev) =>
+        prev.map((acc) => {
+          if (acc.id === accountId) {
+            const updatedPayments = [newPayment, ...acc.payments];
+            const newPaid = acc.paidAmount + payment.amount;
+            const newRemaining = Math.max(0, acc.totalAmount - newPaid);
+            const newStatus: CreditAccount['status'] = newRemaining <= 0 ? 'pagado' : 'vigente';
+
+            return {
+              ...acc,
+              paidAmount: newPaid,
+              remainingAmount: newRemaining,
+              status: newStatus,
+              payments: updatedPayments,
+            };
+          }
+          return acc;
+        }),
+      );
+    },
+    [],
+  );
+
+  const updateCreditAccount = useCallback((id: string, patch: Partial<CreditAccount>) => {
+    setCreditAccounts((prev) => prev.map((acc) => (acc.id === id ? { ...acc, ...patch } : acc)));
+  }, []);
+
+  const deleteCreditAccount = useCallback((id: string) => {
+    setCreditAccounts((prev) => prev.filter((acc) => acc.id !== id));
+  }, []);
+
+  const updateSystemSettings = useCallback((patch: Partial<SystemSettings>) => {
+    setSystemSettings((prev) => ({ ...prev, ...patch }));
+  }, []);
+
+  const restoreDatabase = useCallback(
+    (data: {
+      products?: Product[];
+      suppliers?: Supplier[];
+      customers?: Customer[];
+      movements?: Movement[];
+      sales?: Sale[];
+      branches?: Branch[];
+      creditAccounts?: CreditAccount[];
+      systemSettings?: SystemSettings;
+    }) => {
+      if (data.products) setProducts(data.products);
+      if (data.suppliers) setSuppliers(data.suppliers);
+      if (data.customers) setCustomers(data.customers);
+      if (data.movements) setMovements(data.movements);
+      if (data.sales) setSales(data.sales);
+      if (data.branches) setBranches(data.branches);
+      if (data.creditAccounts) setCreditAccounts(data.creditAccounts);
+      if (data.systemSettings) setSystemSettings(data.systemSettings);
+    },
+    [],
+  );
+
   return (
     <StoreContext.Provider
       value={{
@@ -645,6 +799,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         sales,
         quotes,
         movements,
+        branches,
+        creditAccounts,
+        systemSettings,
         activeRegisterSession,
         registerHistory,
         addCategory,
@@ -673,6 +830,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         addQuote,
         deleteQuote,
         addMovement,
+        addBranch,
+        updateBranch,
+        deleteBranch,
+        addCreditAccount,
+        addCreditPayment,
+        updateCreditAccount,
+        deleteCreditAccount,
+        updateSystemSettings,
+        restoreDatabase,
       }}
     >
       {children}

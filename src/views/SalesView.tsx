@@ -18,6 +18,7 @@ import { Modal } from '../components/Modal';
 import { Badge } from '../components/Badge';
 import { ReceiptPrint } from '../components/ReceiptPrint';
 import { exportToExcel } from '../utils/exportExcel';
+import { Pagination } from '../components/Pagination';
 import type { Sale } from '../types';
 
 const paymentIcons: Record<Sale['paymentMethod'], typeof Banknote> = {
@@ -32,6 +33,8 @@ export function SalesView() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<Sale['status'] | 'Todas'>('Todas');
   const [docFilter, setDocFilter] = useState<Sale['documentType'] | 'Todos'>('Todos');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [detailSale, setDetailSale] = useState<Sale | null>(null);
   const [printSale, setPrintSale] = useState<Sale | null>(null);
   const [confirmCancel, setConfirmCancel] = useState<Sale | null>(null);
@@ -47,6 +50,12 @@ export function SalesView() {
       return matchSearch && matchStatus && matchDoc;
     });
   }, [sales, search, statusFilter, docFilter]);
+
+  const paginatedSales = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filtered.slice(start, start + pageSize);
+  }, [filtered, currentPage, pageSize]);
+
 
   const completed = sales.filter((s) => s.status === 'Completada');
   const totalRevenue = completed.reduce((s, sa) => s + sa.total, 0);
@@ -179,7 +188,7 @@ export function SalesView() {
               </tr>
             </thead>
             <tbody className="divide-y divide-ink-50">
-              {filtered.map((s) => {
+              {paginatedSales.map((s) => {
                 const PIcon = paymentIcons[s.paymentMethod];
                 return (
                   <tr key={s.id} className="hover:bg-ink-50/50 transition-colors">
@@ -250,7 +259,7 @@ export function SalesView() {
               {filtered.length === 0 && (
                 <tr>
                   <td colSpan={9} className="text-center py-12 text-ink-400">
-                    <Receipt size={32} className="mx-auto mb-2 opacity-30" />
+                    <Receipt size={32} className="mx-auto mb-2 opacity-40" />
                     No se encontraron ventas
                   </td>
                 </tr>
@@ -258,6 +267,16 @@ export function SalesView() {
             </tbody>
           </table>
         </div>
+        <Pagination
+          currentPage={currentPage}
+          totalItems={filtered.length}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={(newSize) => {
+            setPageSize(newSize);
+            setCurrentPage(1);
+          }}
+        />
       </div>
 
       {/* Print modal */}

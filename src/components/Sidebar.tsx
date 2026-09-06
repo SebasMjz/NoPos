@@ -12,6 +12,9 @@ import {
   ChevronLeft,
   Wallet,
   FileCheck,
+  CreditCard,
+  Building2,
+  Settings,
 } from 'lucide-react';
 import type { ViewKey } from '../types';
 
@@ -22,12 +25,16 @@ const navItems: { key: ViewKey; label: string; icon: typeof LayoutDashboard }[] 
   { key: 'products', label: 'Productos', icon: Package },
   { key: 'sales', label: 'Ventas', icon: Receipt },
   { key: 'movements', label: 'Movimientos', icon: ArrowLeftRight },
+  { key: 'credits', label: 'Créditos & Deudas', icon: CreditCard },
+  { key: 'branches', label: 'Sucursales & Bodegas', icon: Building2 },
   { key: 'customers', label: 'Clientes', icon: Users },
   { key: 'distributors', label: 'Distribuidores', icon: Truck },
   { key: 'users', label: 'Usuarios', icon: UserCog },
   { key: 'statistics', label: 'Estadísticas', icon: BarChart3 },
   { key: 'quotes', label: 'Cotizaciones', icon: FileCheck },
+  { key: 'settings', label: 'Ajustes Enterprise', icon: Settings },
 ];
+
 
 export function Sidebar({
   current,

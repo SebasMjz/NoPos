@@ -5,6 +5,7 @@ import { formatCurrency } from '../components/format';
 import { Modal } from '../components/Modal';
 import { Badge } from '../components/Badge';
 import { exportToExcel } from '../utils/exportExcel';
+import { Pagination } from '../components/Pagination';
 import type { Customer } from '../types';
 
 const emptyForm: Omit<Customer, 'id' | 'totalPurchases' | 'visits' | 'createdAt'> = {
@@ -16,6 +17,8 @@ const emptyForm: Omit<Customer, 'id' | 'totalPurchases' | 'visits' | 'createdAt'
 export function CustomersView() {
   const { customers, addCustomer, updateCustomer, deleteCustomer } = useStore();
   const [search, setSearch] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(12);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
@@ -29,6 +32,12 @@ export function CustomersView() {
         (c.company ?? '').toLowerCase().includes(search.toLowerCase()),
     );
   }, [customers, search]);
+
+  const paginatedCustomers = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filtered.slice(start, start + pageSize);
+  }, [filtered, currentPage, pageSize]);
+
 
   const openCreate = () => {
     setForm(emptyForm);
@@ -121,10 +130,10 @@ export function CustomersView() {
         </div>
       </div>
 
-      {/* Cards grid with Scroll */}
-      <div className="max-h-[calc(100vh-17rem)] overflow-y-auto pr-1 custom-scrollbar">
+      {/* Cards grid */}
+      <div className="space-y-3">
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-          {filtered.map((c) => (
+          {paginatedCustomers.map((c) => (
             <div key={c.id} className="card card-hover p-4">
               <div className="flex items-start justify-between mb-2">
                 <div className="flex items-center gap-2.5">
@@ -186,7 +195,22 @@ export function CustomersView() {
             </div>
           )}
         </div>
+
+        <div className="card overflow-hidden">
+          <Pagination
+            currentPage={currentPage}
+            totalItems={filtered.length}
+            pageSize={pageSize}
+            pageSizeOptions={[6, 12, 24, 48]}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={(newSize) => {
+              setPageSize(newSize);
+              setCurrentPage(1);
+            }}
+          />
+        </div>
       </div>
+
 
       {/* Modal */}
       <Modal

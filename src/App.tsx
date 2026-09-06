@@ -13,6 +13,9 @@ import { UsersView } from './views/UsersView';
 import { StatisticsView } from './views/StatisticsView';
 import { MovementsView } from './views/MovementsView';
 import { CashRegisterView } from './views/CashRegisterView';
+import { CreditsView } from './views/CreditsView';
+import { BranchesView } from './views/BranchesView';
+import { SettingsView } from './views/SettingsView';
 import type { ViewKey } from './types';
 
 const viewMeta: Record<ViewKey, { title: string; subtitle: string }> = {
@@ -23,10 +26,13 @@ const viewMeta: Record<ViewKey, { title: string; subtitle: string }> = {
   products: { title: 'Productos', subtitle: 'Gestión de inventario y trazabilidad por SN' },
   sales: { title: 'Ventas', subtitle: 'Historial de transacciones y comprobantes' },
   movements: { title: 'Movimientos de Inventario', subtitle: 'Entradas, salidas, RMA y convenios' },
+  credits: { title: 'Créditos & Deudas', subtitle: 'Cuentas por cobrar a clientes y cuentas por pagar a proveedores' },
+  branches: { title: 'Sucursales & Bodegas', subtitle: 'Red de locales, depósitos y transferencias de stock' },
   customers: { title: 'Clientes', subtitle: 'Gestión de clientes y fidelización' },
   distributors: { title: 'Distribuidores', subtitle: 'Gestión de proveedores e importadoras' },
   users: { title: 'Usuarios', subtitle: 'Gestión de personal y roles' },
   statistics: { title: 'Estadísticas', subtitle: 'Análisis y reportes financieros' },
+  settings: { title: 'Ajustes Enterprise', subtitle: 'Configuración de empresa, hardware POS, políticas y backups' },
 };
 
 function App() {
@@ -54,15 +60,19 @@ function App() {
             {view === 'products' && <ProductsView />}
             {view === 'sales' && <SalesView />}
             {view === 'movements' && <MovementsView />}
+            {view === 'credits' && <CreditsView />}
+            {view === 'branches' && <BranchesView />}
             {view === 'customers' && <CustomersView />}
             {view === 'distributors' && <DistributorsView />}
             {view === 'users' && <UsersView />}
             {view === 'statistics' && <StatisticsView />}
+            {view === 'settings' && <SettingsView />}
           </main>
         </div>
       </div>
     </StoreProvider>
   );
 }
+
 
 export default App;
