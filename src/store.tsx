@@ -72,6 +72,7 @@ interface StoreState {
   deleteUser: (id: string) => void;
   addSale: (sale: Omit<Sale, 'id' | 'folio' | 'createdAt'>) => Sale;
   cancelSale: (id: string) => void;
+  settlePendingSale: (saleId: string, paymentData: { amount: number; paymentMethod: string; notes?: string }) => void;
   addQuote: (quote: Omit<Quote, 'id' | 'folio' | 'createdAt'>) => Quote;
   deleteQuote: (id: string) => void;
   addMovement: (m: Omit<Movement, 'id' | 'createdAt'>) => void;
@@ -685,6 +686,92 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const settlePendingSale = useCallback(
+    (
+      saleId: string,
+      paymentData: { amount: number; paymentMethod: string; notes?: string },
+    ) => {
+      setSales((prev) =>
+        prev.map((s) => {
+          if (s.id === saleId) {
+            const currentPending = s.pendingBalance ?? s.total;
+            const remaining = Math.max(0, currentPending - paymentData.amount);
+            const newStatus: Sale['status'] = remaining <= 0 ? 'Completada' : 'Pendiente';
+            const historyItem = {
+              id: nextId('pay-'),
+              amount: paymentData.amount,
+              paymentMethod: paymentData.paymentMethod,
+              date: new Date().toISOString(),
+              notes: paymentData.notes,
+            };
+
+            return {
+              ...s,
+              pendingBalance: remaining,
+              advanceAmount: (s.advanceAmount || 0) + paymentData.amount,
+              status: newStatus,
+              settlementPaymentMethod: paymentData.paymentMethod,
+              settledAt: new Date().toISOString(),
+              settlementNotes: paymentData.notes,
+              settlementHistory: [...(s.settlementHistory || []), historyItem],
+            };
+          }
+          return s;
+        }),
+      );
+
+      // Add to active cash register
+      setActiveRegisterSession((prev) => {
+        if (!prev) return null;
+        let cashIncrement = 0;
+        let cardIncrement = 0;
+        let transferIncrement = 0;
+        let otherIncrement = 0;
+
+        const m = paymentData.paymentMethod.toLowerCase();
+        if (m.includes('efectivo')) {
+          cashIncrement = paymentData.amount;
+        } else if (m.includes('tarjeta') || m.includes('pos')) {
+          cardIncrement = paymentData.amount;
+        } else if (m.includes('transferencia') || m.includes('qr')) {
+          transferIncrement = paymentData.amount;
+        } else {
+          otherIncrement = paymentData.amount;
+        }
+
+        const newCashSales = prev.cashSales + cashIncrement;
+        const newCardSales = prev.cardSales + cardIncrement;
+        const newTransferSales = prev.transferSales + transferIncrement;
+        const newOtherSales = prev.otherSales + otherIncrement;
+        const newExpected =
+          prev.openingAmount + newCashSales + prev.cashIn - prev.cashOut;
+
+        const cashMove: CashMovement = {
+          id: nextId('cm-'),
+          type: 'ingreso',
+          amount: paymentData.amount,
+          reason: `Liquidación de saldo venta (${paymentData.paymentMethod})${
+            paymentData.notes ? `: ${paymentData.notes}` : ''
+          }`,
+          cashierName: prev.cashierName,
+          createdAt: new Date().toISOString(),
+        };
+
+        return {
+          ...prev,
+          cashSales: newCashSales,
+          cardSales: newCardSales,
+          transferSales: newTransferSales,
+          otherSales: newOtherSales,
+          expectedCash: newExpected,
+          cashMovements: [cashMove, ...prev.cashMovements],
+        };
+      });
+    },
+    [],
+  );
+
+
   // Branch management
   const addBranch = useCallback((b: Omit<Branch, 'id'>) => {
     const newBranch: Branch = {
@@ -827,6 +914,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         deleteUser,
         addSale,
         cancelSale,
+        settlePendingSale,
         addQuote,
         deleteQuote,
         addMovement,

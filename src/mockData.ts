@@ -559,6 +559,115 @@ function buildSale(
 }
 
 export const mockSales: Sale[] = [
+  {
+    ...buildSale('00126', mockCustomers[0], mockUsers[0], [
+      {
+        productId: 'p1',
+        name: 'Laptop Dell XPS 15 OLED',
+        sku: 'DLX-15OLED',
+        price: 18500,
+        quantity: 1,
+        subtotal: 18500,
+        serialNumber: 'SN-DLL-1001',
+      },
+    ], 'Efectivo', 'Nota de venta', 'Pendiente', 1),
+    isAdvance: true,
+    advanceAmount: 8500,
+    pendingBalance: 10000,
+    settlementHistory: [
+      {
+        id: 'pay-init-1',
+        amount: 8500,
+        paymentMethod: 'Efectivo',
+        date: '2026-09-05T10:30:00',
+        notes: 'Anticipo inicial para reserva de equipo Laptop Dell',
+      },
+    ],
+  },
+  {
+    ...buildSale('00127', mockCustomers[1], mockUsers[2], [
+      {
+        productId: 'p8',
+        name: 'Tarjeta de Video RTX 4080 Super 16GB',
+        sku: 'CMP-4080S',
+        price: 13500,
+        quantity: 1,
+        subtotal: 13500,
+        serialNumber: 'SN-NV-2001',
+      },
+      {
+        productId: 'p7',
+        name: 'Procesador Intel Core i9-14900K',
+        sku: 'CMP-I91490',
+        price: 6100,
+        quantity: 1,
+        subtotal: 6100,
+        serialNumber: 'SN-INT-3001',
+      },
+    ], 'Transferencia', 'Factura', 'Pendiente', 0),
+    isAdvance: true,
+    advanceAmount: 7600,
+    pendingBalance: 12000,
+    settlementHistory: [
+      {
+        id: 'pay-init-2',
+        amount: 7600,
+        paymentMethod: 'Transferencia',
+        date: '2026-09-06T08:15:00',
+        notes: 'Abono 1era cuota transferencia BNB',
+      },
+    ],
+  },
+  {
+    ...buildSale('00128', mockCustomers[5], mockUsers[1], [
+      {
+        productId: 'p15',
+        name: 'Monitor Samsung Odyssey G9 49" Curved',
+        sku: 'MON-SG49',
+        price: 11800,
+        quantity: 1,
+        subtotal: 11800,
+        serialNumber: 'SN-SG9-001',
+      },
+    ], 'QR Simple', 'Factura', 'Pendiente', 2),
+    isAdvance: true,
+    advanceAmount: 3800,
+    pendingBalance: 8000,
+    settlementHistory: [
+      {
+        id: 'pay-init-3',
+        amount: 3800,
+        paymentMethod: 'QR Simple',
+        date: '2026-09-04T14:20:00',
+        notes: 'Reserva confirmada mediante código QR',
+      },
+    ],
+  },
+  {
+    ...buildSale('00129', mockCustomers[2], mockUsers[0], [
+      {
+        productId: 'p2',
+        name: 'MacBook Pro 14" M3 Pro',
+        sku: 'APL-MBP14',
+        price: 17900,
+        quantity: 1,
+        subtotal: 17900,
+        serialNumber: 'SN-APL-2001',
+      },
+    ], 'Efectivo', 'Nota de venta', 'Pendiente', 3),
+    isAdvance: true,
+    advanceAmount: 5000,
+    pendingBalance: 12900,
+    settlementHistory: [
+      {
+        id: 'pay-init-4',
+        amount: 5000,
+        paymentMethod: 'Efectivo',
+        date: '2026-09-03T11:00:00',
+        notes: 'Anticipo en efectivo en sucursal central',
+      },
+    ],
+  },
   buildSale('00125', mockCustomers[0], mockUsers[3], makeSaleItems([{ product: mockProducts[0], qty: 1 }, { product: mockProducts[10], qty: 1 }]), 'Tarjeta', 'Factura', 'Completada', 0),
   buildSale('00124', mockCustomers[2], mockUsers[2], makeSaleItems([{ product: mockProducts[3], qty: 1 }]), 'Efectivo', 'Nota de venta', 'Completada', 0),
   buildSale('00123', mockCustomers[1], mockUsers[3], makeSaleItems([{ product: mockProducts[2], qty: 1 }, { product: mockProducts[13], qty: 1 }]), 'Transferencia', 'Factura', 'Completada', 1),
@@ -574,6 +683,7 @@ export const mockSales: Sale[] = [
   buildSale('00112', mockCustomers[3], mockUsers[2], makeSaleItems([{ product: mockProducts[8], qty: 1 }]), 'Transferencia', 'Factura', 'Completada', 12),
   buildSale('00111', mockCustomers[5], mockUsers[3], makeSaleItems([{ product: mockProducts[0], qty: 1 }]), 'Tarjeta', 'Factura', 'Completada', 13),
 ];
+
 
 export const mockMovements: Movement[] = [
   {

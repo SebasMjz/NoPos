@@ -38,6 +38,7 @@ const viewMeta: Record<ViewKey, { title: string; subtitle: string }> = {
 function App() {
   const [view, setView] = useState<ViewKey>('dashboard');
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const meta = viewMeta[view];
 
@@ -49,10 +50,16 @@ function App() {
           onNavigate={setView}
           collapsed={collapsed}
           onToggleCollapse={() => setCollapsed((c) => !c)}
+          mobileOpen={mobileOpen}
+          onCloseMobile={() => setMobileOpen(false)}
         />
         <div className="flex-1 flex flex-col min-w-0">
-          <Topbar title={meta.title} subtitle={meta.subtitle} />
-          <main className="flex-1 p-6 overflow-x-hidden">
+          <Topbar
+            title={meta.title}
+            subtitle={meta.subtitle}
+            onToggleMobileMenu={() => setMobileOpen((o) => !o)}
+          />
+          <main className="flex-1 p-3.5 sm:p-5 lg:p-6 overflow-x-hidden">
             {view === 'dashboard' && <DashboardView onNavigate={setView} />}
             {view === 'pos' && <PosView />}
             {view === 'quotes' && <QuotesView />}
@@ -73,6 +80,7 @@ function App() {
     </StoreProvider>
   );
 }
+
 
 
 export default App;

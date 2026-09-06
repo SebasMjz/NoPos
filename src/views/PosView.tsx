@@ -58,6 +58,7 @@ export function PosView() {
   const [category, setCategory] = useState<string>('Todos');
   const [brandFilter, setBrandFilter] = useState<string>('Todas');
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [mobilePosTab, setMobilePosTab] = useState<'catalog' | 'cart'>('catalog');
 
   // Cash Register Barrier
   const [openRegisterModal, setOpenRegisterModal] = useState(false);
@@ -464,27 +465,23 @@ export function PosView() {
       )}
 
       {/* Top Banner: Cash Register Status Indicator */}
-      <div className="bg-white border border-ink-100 rounded-xl px-4 py-2 mb-3 shrink-0 flex items-center justify-between shadow-sm">
+      <div className="bg-white border border-ink-100 rounded-xl p-3 mb-3 shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-sm">
         <div className="flex items-center gap-3">
           {activeRegisterSession?.status === 'open' ? (
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
               <span className="text-xs font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
                 Caja Abierta ({activeRegisterSession.id})
               </span>
-              <span className="text-xs text-ink-600 hidden sm:inline">
-                Cajero: <strong>{activeRegisterSession.cashierName}</strong> • Inicial:{' '}
-                <strong>{formatCurrency(activeRegisterSession.openingAmount)}</strong>
+              <span className="text-xs text-ink-600">
+                Cajero: <strong>{activeRegisterSession.cashierName}</strong>
               </span>
             </div>
           ) : (
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-red-500" />
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="w-2.5 h-2.5 rounded-full bg-red-500 shrink-0" />
               <span className="text-xs font-bold text-red-700 bg-red-50 px-2 py-0.5 rounded-md border border-red-200">
                 Caja Cerrada (Ventas Bloqueadas)
-              </span>
-              <span className="text-xs text-ink-500 hidden sm:inline">
-                Abre turno de caja para habilitar transacciones
               </span>
             </div>
           )}
@@ -493,7 +490,7 @@ export function PosView() {
         <div>
           {activeRegisterSession?.status === 'open' ? (
             <span className="text-xs text-ink-500 font-medium font-mono">
-              Esperado en caja: <strong>{formatCurrency(activeRegisterSession.expectedCash)}</strong>
+              Esperado: <strong>{formatCurrency(activeRegisterSession.expectedCash)}</strong>
             </span>
           ) : (
             <button
@@ -506,10 +503,47 @@ export function PosView() {
         </div>
       </div>
 
+      {/* Mobile Tab Switcher (Visible only on < lg screens) */}
+      <div className="lg:hidden flex bg-white p-1 rounded-xl border border-ink-200 mb-3 shadow-sm gap-1 shrink-0">
+        <button
+          type="button"
+          onClick={() => setMobilePosTab('catalog')}
+          className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+            mobilePosTab === 'catalog'
+              ? 'bg-brand-600 text-white shadow-sm'
+              : 'text-ink-600 hover:text-ink-900 bg-ink-50'
+          }`}
+        >
+          <Package size={15} />
+          Catálogo
+        </button>
+        <button
+          type="button"
+          onClick={() => setMobilePosTab('cart')}
+          className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 relative ${
+            mobilePosTab === 'cart'
+              ? 'bg-brand-600 text-white shadow-sm'
+              : 'text-ink-600 hover:text-ink-900 bg-ink-50'
+          }`}
+        >
+          <ShoppingCart size={15} />
+          Carrito ({cartCount})
+          {cartCount > 0 && (
+            <span className="text-[10px] bg-emerald-500 text-white px-1.5 py-0.2 rounded-full font-mono font-bold">
+              {formatCurrency(total)}
+            </span>
+          )}
+        </button>
+      </div>
+
       {/* Main Split Layout: Left Catalog / Right Cart */}
-      <div className="flex-1 flex flex-col lg:flex-row gap-4 min-h-0 overflow-hidden">
+      <div className="flex-1 flex flex-col lg:flex-row gap-4 min-h-0 overflow-hidden relative">
         {/* Product Catalog Column */}
-        <div className="flex-1 flex flex-col min-w-0 h-full bg-white rounded-xl border border-ink-100 p-3 shadow-sm">
+        <div
+          className={`${
+            mobilePosTab === 'catalog' ? 'flex' : 'hidden lg:flex'
+          } flex-1 flex-col min-w-0 h-full bg-white rounded-xl border border-ink-100 p-3 shadow-sm relative`}
+        >
           {/* Search Bar with Hardware Scanner Support */}
           <div className="space-y-2 pb-2 shrink-0 border-b border-ink-100">
             <div className="flex gap-2">
@@ -565,7 +599,7 @@ export function PosView() {
           </div>
 
           {/* Scrollable Products Grid */}
-          <div className="flex-1 overflow-y-auto pr-1 pt-2 custom-scrollbar">
+          <div className="flex-1 overflow-y-auto pr-1 pt-2 pb-16 lg:pb-2 custom-scrollbar">
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 2xl:grid-cols-5 gap-2.5">
               {filteredProducts.map((product) => {
                 const availableSNCount = product.hasSerialNumber
@@ -650,10 +684,57 @@ export function PosView() {
               )}
             </div>
           </div>
+
+          {/* Floating Mobile Cart Bar */}
+          {cartCount > 0 && mobilePosTab === 'catalog' && (
+            <div className="lg:hidden absolute bottom-3 left-3 right-3 z-30 animate-slide-up">
+              <button
+                type="button"
+                onClick={() => setMobilePosTab('cart')}
+                className="w-full py-2.5 px-3.5 rounded-xl bg-ink-900 text-white shadow-xl flex items-center justify-between border border-ink-700 active:scale-98 transition-transform"
+              >
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-brand-600 flex items-center justify-center font-bold text-xs shadow text-white">
+                    {cartCount}
+                  </div>
+                  <div className="text-left">
+                    <p className="text-xs font-bold leading-tight">Ver Carrito ({cart.length} productos)</p>
+                    <p className="text-[10px] text-ink-300">Toca para revisar y cobrar</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold font-mono text-emerald-400">
+                    {formatCurrency(total)}
+                  </span>
+                  <span className="text-xs bg-brand-600 text-white font-bold px-2.5 py-1 rounded-lg flex items-center gap-1 shadow">
+                    Cobrar →
+                  </span>
+                </div>
+              </button>
+            </div>
+          )}
         </div>
 
-        {/* Cart Sidebar Column (Fixed Height, Independent Scroll) */}
-        <div className="w-full lg:w-96 shrink-0 card flex flex-col h-full bg-white shadow-sm overflow-hidden border border-ink-100">
+        {/* Cart Sidebar Column (Fixed Height on Desktop, Full View on Mobile) */}
+        <div
+          className={`${
+            mobilePosTab === 'cart' ? 'flex' : 'hidden lg:flex'
+          } w-full lg:w-96 shrink-0 card flex-col h-full bg-white shadow-sm overflow-hidden border border-ink-100`}
+        >
+          {/* Mobile Return to Catalog Button */}
+          <div className="lg:hidden px-4 py-2 bg-brand-50 border-b border-brand-100 flex items-center justify-between shrink-0">
+            <button
+              type="button"
+              onClick={() => setMobilePosTab('catalog')}
+              className="text-xs text-brand-700 hover:text-brand-900 font-bold flex items-center gap-1"
+            >
+              ← Volver al Catálogo
+            </button>
+            <span className="text-[11px] text-brand-800 font-mono font-bold">
+              {cartCount} unid. en ticket
+            </span>
+          </div>
+
           {/* Cart Header */}
           <div className="px-4 py-3 border-b border-ink-100 flex items-center justify-between shrink-0 bg-ink-50/50">
             <div className="flex items-center gap-2">
@@ -675,6 +756,7 @@ export function PosView() {
               </button>
             )}
           </div>
+
 
           {/* Document Type Selector (Nota de Venta / Factura) */}
           <div className="px-4 py-2 border-b border-ink-100 bg-ink-50/30 shrink-0">

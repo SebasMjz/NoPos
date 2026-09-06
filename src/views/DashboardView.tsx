@@ -34,26 +34,26 @@ function StatCard({
   color: string;
 }) {
   return (
-    <div className="card card-hover p-4 sm:p-5">
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-xs sm:text-sm text-ink-500 font-medium">{label}</p>
-          <p className="text-xl sm:text-2xl font-bold text-ink-900 mt-1">{value}</p>
+    <div className="card card-hover p-3.5 sm:p-5 flex flex-col justify-between">
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <p className="text-[11px] sm:text-sm text-ink-500 font-medium truncate">{label}</p>
+          <p className="text-lg sm:text-2xl font-bold text-ink-900 mt-0.5 sm:mt-1 truncate">{value}</p>
         </div>
-        <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center ${color}`}>
-          <Icon size={20} />
+        <div className={`w-9 h-9 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center shrink-0 ${color}`}>
+          <Icon size={18} className="sm:w-5 sm:h-5" />
         </div>
       </div>
-      <div className="flex items-center gap-1.5 mt-3 text-xs">
+      <div className="flex items-center gap-1.5 mt-2.5 sm:mt-3 text-[11px] sm:text-xs flex-wrap">
         {trendUp ? (
-          <ArrowUpRight size={15} className="text-emerald-500" />
+          <ArrowUpRight size={13} className="text-emerald-500 shrink-0" />
         ) : (
-          <ArrowDownRight size={15} className="text-red-500" />
+          <ArrowDownRight size={13} className="text-red-500 shrink-0" />
         )}
         <span className={`font-semibold ${trendUp ? 'text-emerald-600' : 'text-red-600'}`}>
           {trend}
         </span>
-        <span className="text-ink-400 hidden sm:inline">vs. período anterior</span>
+        <span className="text-ink-400 hidden sm:inline">vs. anterior</span>
       </div>
     </div>
   );

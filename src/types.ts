@@ -85,6 +85,16 @@ export interface Sale {
   pendingBalance?: number;
   paymentSplits?: PaymentSplit[];
   status: 'Completada' | 'Cancelada' | 'Pendiente';
+  settlementPaymentMethod?: string;
+  settledAt?: string;
+  settlementNotes?: string;
+  settlementHistory?: {
+    id: string;
+    amount: number;
+    paymentMethod: string;
+    date: string;
+    notes?: string;
+  }[];
   createdAt: string;
 }
 
